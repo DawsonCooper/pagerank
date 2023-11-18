@@ -2,6 +2,7 @@ import os
 import random
 import re
 import sys
+import numpy as numpy
 
 DAMPING = 0.85
 SAMPLES = 10000
@@ -63,6 +64,11 @@ def transition_model(corpus, page, damping_factor):
     distribution = dict()
     # set of pages that are linked by the current page 
     currentPageLinks = corpus[page]
+
+    if len(currentPageLinks) == 0:
+        for page in corpus:
+            distribution[page] = 1 / len(corpus)
+        return distribution
     
     # calculate the base probability for each page in the corpus being chosen completly at random after the damping factor is applied and divided evenly among all pages in the corpus
     for page in corpus:
@@ -74,6 +80,18 @@ def transition_model(corpus, page, damping_factor):
         distribution[page] += evenDistribution
     
     print(distribution)
+    """
+    
+    distribution = {
+        pageKey: probability(.15),
+        pageKey: probability(.10),
+        pageKey: probability(.50),
+        pageKey: probability(.25),
+    }
+    
+    this will be the probability distribution for the current page passed into the function
+    
+    """
     return distribution
 
 
@@ -89,19 +107,53 @@ def sample_pagerank(corpus, damping_factor, n):
     result = {pageInCorpus: probability, pageInCorpus: probability, ...}
     
     """
-    result = dict()
-    # this page will start as a random page then will be updated throughout our sample loop 
+    result = {}
+    # get random page 
     currPage = random.choice(list(corpus.keys()))
+    
+    
+    
+    probDist = {}
+    
+    # Get the probability distribution for each of the pages in the courpus and store it in a dictionary so we dont need to calc during sample loop
+    for page in corpus:
+        # get the probability distribution of each page in the corpus
+        probDist[page] = transition_model(corpus, page, damping_factor)
+        # fill result with a key for each page
+        result[page] = 0
+    
     """
-    sample loop starts on a random page then chooses a page based on the probability distribution of returned from transition_model
-    each time we visit a page we can increment the value of that page in our result dictionary by 1
-    after the loop is finished we can loop over our result dictionary and divide each value by the total number of samples to get the probability of each page being chosen
+    {
+        page1: {pageKey: probability, pageKey: probability, pageKey: probability, pageKey: probability, ...},
+        page2: {pageKey: probability, pageKey: probability, pageKey: probability, pageKey: probability, ...},
+        
+        
+    }
     """
+    
+    for pageDist in probDist:
+        # this will create a set of list for each page one will represent the possible pages to go to and one will represent the probability of going to that page
+        pages = []
+        probs = []
+        for link in pageDist:
+            pages.append(link)
+            probs.append(pageDist[link])
+        
+        # reset the probability distrubution for each page to be a set where set[0] = possible pages and set[1] = probability of going to that page
+        pageDist = (pages, probs)
+    
+    
+    # sample loop that uses numpy to choose our next page based on a list of possible pages and a list of weighted probabilities
     for i in range(n):
         
-        pass
+        
+        # increase the visit count of the current page by 1/n 
+        result[currPage] += 1 / n
+        # choose the next page based on the probability distribution of the current page
+        currPage = numpy.random.choice(probDist[currPage][0], None, True, probDist[currPage][1])
     
     
+
     
     return result
 
