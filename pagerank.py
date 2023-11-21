@@ -152,9 +152,7 @@ def sample_pagerank(corpus, damping_factor, n):
         # choose the next page based on the probability distribution of the current page
         currPage = numpy.random.choice(probDist[currPage][0], None, True, probDist[currPage][1])
     
-    
 
-    
     return result
 
 
@@ -167,6 +165,15 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
+    
+    distribution = {}
+    # set default PR for each page into the distribution dictionary (base probability based on the change a page will be randomly chosen from corpus) 
+    for page in corpus:
+        distribution[page] = 1 - damping_factor / len(corpus)
+    
+    
+    
+    
     raise NotImplementedError
 
 
