@@ -170,12 +170,35 @@ def iterate_pagerank(corpus, damping_factor):
     # set default PR for each page into the distribution dictionary (base probability based on the change a page will be randomly chosen from corpus) 
     for page in corpus:
         distribution[page] = 1 - damping_factor / len(corpus)
-    
-    
-    
-    
-    raise NotImplementedError
 
+    # dict of pages and the pages that link to that page opposite of the corpus
+    linkDist = {}
+    
+
+        
+    # loop over the corpus and for each page give it a list of pages that link to it length of that list will give us the numPages
+    for page in corpus:
+        for link in page:
+            try:
+                linkDist[link].add(page)
+            except KeyError:
+                # if there is no key for the link we are checking create a new key for it and add the page that links to it
+                linkDist[link] = set([page])
+    
+    """
+    
+    """
+    
+    for page in linkDist:
+        sumation = 0
+        prI = 0
+        for link in linkDist[page]:
+            # prI = the curr pageRank of link / the number of links on that page
+            prI = distribution[link]
+            prI /= len(linkDist[link])  
+            sumation += prI
+        distribution[page] += damping_factor * sumation
+    return distribution 
 
 if __name__ == "__main__":
     main()
