@@ -192,24 +192,24 @@ def iterate_pagerank(corpus, damping_factor):
                 # if there is no key for the link we are checking create a new key for it and add the page that links to it
                 linkDist[link] = set([page])
     
+    for i in range(50):
+        for page in linkDist:
+            sumation = 0
+            prI = 0
+            print(page)
+            for link in linkDist[page]:
+                print(link)
 
-    for page in linkDist:
-        sumation = 0
-        prI = 0
-        print(page)
-        for link in linkDist[page]:
-            print(link)
-            
-            numLinks = len(corpus[link])
-            # prI = the curr pageRank of link / the number of links on that page
-            prI = distribution[link] / numLinks
-            sumation += prI
-        print('---------------')
-        temp = (1 - damping_factor) / len(corpus)   
-        sumation *= damping_factor
-        sumation += temp
-        distribution[page] = sumation
-        
+                numLinks = len(corpus[link])
+                # prI = the curr pageRank of link / the number of links on that page
+                prI = distribution[link] / numLinks
+                sumation += prI
+            print('---------------')
+            temp = (1 - damping_factor) / len(corpus)   
+            sumation *= damping_factor
+            sumation += temp
+            distribution[page] = sumation
+
     return distribution 
 
 if __name__ == "__main__":
