@@ -65,34 +65,35 @@ def transition_model(corpus, page, damping_factor):
     # set of pages that are linked by the current page 
     currentPageLinks = corpus[page]
 
+    
+    # if the current page has no links we just return the base probability of any page being chosen at random
     if len(currentPageLinks) == 0:
-        for page in corpus:
-            distribution[page] = 1 / len(corpus)
+        for item in corpus:
+            distribution[item] = 1 / len(corpus)
         return distribution
-    
-    # calculate the base probability for each page in the corpus being chosen completly at random after the damping factor is applied and divided evenly among all pages in the corpus
-    for page in corpus:
-        distribution[page] = (1 - damping_factor) / len(corpus)
-        
-    # for each page that is linked by current add the probability of being chosen at random to the distribution of all pages being chosen
-    for page in currentPageLinks:
-        evenDistribution = damping_factor / len(currentPageLinks)
-        distribution[page] += evenDistribution
-    
-    print(distribution)
-    """
-    
-    distribution = {
-        pageKey: probability(.15),
-        pageKey: probability(.10),
-        pageKey: probability(.50),
-        pageKey: probability(.25),
-    }
-    
-    this will be the probability distribution for the current page passed into the function
-    
-    """
-    return distribution
+    else:
+        # calculate the base probability for each page in the corpus being chosen completly at random after the damping factor is applied and divided evenly among all pages in the corpus
+        for item in corpus:
+            distribution[item] = (1 - damping_factor) / len(corpus)
+
+        # for each page that is linked by current add the probability of being chosen at random to the distribution of all pages being chosen
+        for link in currentPageLinks:
+            evenDistribution = damping_factor / len(currentPageLinks)
+            distribution[link] += evenDistribution
+
+        """
+
+        distribution = {
+            pageKey: probability(.15),
+            pageKey: probability(.10),
+            pageKey: probability(.50),
+            pageKey: probability(.25),
+        }
+
+        this will be the probability distribution for the current page passed into the function
+
+        """
+        return distribution
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -121,11 +122,13 @@ def sample_pagerank(corpus, damping_factor, n):
         probDist[page] = transition_model(corpus, page, damping_factor)
         # fill result with a key for each page
         result[page] = 0
+
+    
     
     """
     {
-        page1: {pageKey: probability, pageKey: probability, pageKey: probability, pageKey: probability, ...},
-        page2: {pageKey: probability, pageKey: probability, pageKey: probability, pageKey: probability, ...},
+        'page1': {pageKey: probability, pageKey: probability, pageKey: probability, pageKey: probability, ...},
+        'page2': {pageKey: probability, pageKey: probability, pageKey: probability, pageKey: probability, ...},
         
         
     }
@@ -135,20 +138,23 @@ def sample_pagerank(corpus, damping_factor, n):
         # this will create a set of list for each page one will represent the possible pages to go to and one will represent the probability of going to that page
         pages = []
         probs = []
-        for link in pageDist:
+
+        
+        for link in probDist[pageDist]:
+
             pages.append(link)
-            probs.append(pageDist[link])
+            probs.append(probDist[pageDist][link])
         
         # reset the probability distrubution for each page to be a set where set[0] = possible pages and set[1] = probability of going to that page
-        pageDist = (pages, probs)
+        probDist[pageDist] = (pages, probs)
     
-    
+
     # sample loop that uses numpy to choose our next page based on a list of possible pages and a list of weighted probabilities
     for i in range(n):
         
         
         # increase the visit count of the current page by 1/n 
-        result[currPage] += 1 / n
+        result[currPage] += (1 / n)
         # choose the next page based on the probability distribution of the current page
         currPage = numpy.random.choice(probDist[currPage][0], None, True, probDist[currPage][1])
     
@@ -169,35 +175,41 @@ def iterate_pagerank(corpus, damping_factor):
     distribution = {}
     # set default PR for each page into the distribution dictionary (base probability based on the change a page will be randomly chosen from corpus) 
     for page in corpus:
-        distribution[page] = 1 - damping_factor / len(corpus)
+        distribution[page] = 1 / len(corpus)
 
     # dict of pages and the pages that link to that page opposite of the corpus
     linkDist = {}
-    
+
 
         
     # loop over the corpus and for each page give it a list of pages that link to it length of that list will give us the numPages
     for page in corpus:
-        for link in page:
+        for link in corpus[page]:
+
             try:
                 linkDist[link].add(page)
             except KeyError:
                 # if there is no key for the link we are checking create a new key for it and add the page that links to it
                 linkDist[link] = set([page])
     
-    """
-    
-    """
-    
+
     for page in linkDist:
         sumation = 0
         prI = 0
+        print(page)
         for link in linkDist[page]:
+            print(link)
+            
+            numLinks = len(corpus[link])
             # prI = the curr pageRank of link / the number of links on that page
-            prI = distribution[link]
-            prI /= len(linkDist[link])  
+            prI = distribution[link] / numLinks
             sumation += prI
-        distribution[page] += damping_factor * sumation
+        print('---------------')
+        temp = (1 - damping_factor) / len(corpus)   
+        sumation *= damping_factor
+        sumation += temp
+        distribution[page] = sumation
+        
     return distribution 
 
 if __name__ == "__main__":
